@@ -1,4 +1,4 @@
-package com.example.cotr_appwrite
+package com.example.cotr_examples
 
 import io.flutter.embedding.android.FlutterActivity
 

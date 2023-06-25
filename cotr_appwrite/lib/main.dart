@@ -1,10 +1,13 @@
 import 'package:appwrite/appwrite.dart';
-import 'package:appwrite_authentication/sign_in.dart';
+import 'package:appwrite_authentication/sign_up.dart';
 import 'package:flutter/material.dart';
 
-void main() {
+late Client client;
 
-  final client = Client()
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  client = Client()
       .setEndpoint('https://cloud.appwrite.io/v1') // Your API Endpoint
       .setProject(const String.fromEnvironment('APPWRITE_PROJECT_ID'));
 
@@ -17,12 +20,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const SignIn(),
+      home: const SignUp(),
     );
   }
 }
