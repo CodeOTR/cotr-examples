@@ -1,0 +1,15 @@
+{
+  "projects": {
+    "default": "cotr-template"
+  },
+  "targets": {
+    "cotr-template": {
+      "hosting": {
+        "appwrite": [
+          "cotr-appwrite"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}
