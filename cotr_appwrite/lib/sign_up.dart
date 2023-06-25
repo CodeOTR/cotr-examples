@@ -77,7 +77,11 @@ class _SignUpState extends State<SignUp> {
                         ElevatedButton(
                           onPressed: () async {
                             try {
-                              await Account(client).create(userId: ID.unique(), email: emailController.text, password: passwordController.text);
+                              await Account(client).create(
+                                userId: ID.unique(),
+                                email: emailController.text,
+                                password: passwordController.text,
+                              );
 
                               Navigator.of(context).push(MaterialPageRoute(builder: (context) => const Home()));
                             } on AppwriteException catch (e) {

@@ -28,7 +28,7 @@ class _SignInState extends State<SignIn> {
               decoration: const InputDecoration(
                 hintText: 'Email',
               ),
-              autofillHints: [AutofillHints.email],
+              autofillHints: const [AutofillHints.email],
               textInputAction: TextInputAction.next,
               validator: (value) {
                 if (!RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+").hasMatch(emailController.text))
@@ -40,7 +40,7 @@ class _SignInState extends State<SignIn> {
             TextFormField(
               textInputAction: TextInputAction.done,
               controller: passwordController,
-              autofillHints: [AutofillHints.password],
+              autofillHints: const [AutofillHints.password],
               decoration: const InputDecoration(
                 hintText: 'Password',
               ),
@@ -49,7 +49,10 @@ class _SignInState extends State<SignIn> {
             ElevatedButton(
               onPressed: () async {
                 try {
-                  await Account(client).createEmailSession(email: emailController.text, password: passwordController.text);
+                  await Account(client).createEmailSession(
+                    email: emailController.text,
+                    password: passwordController.text,
+                  );
 
                   Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => const Home()), (route) => false);
                 } catch (e) {
