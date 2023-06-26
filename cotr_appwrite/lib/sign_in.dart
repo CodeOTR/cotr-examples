@@ -1,4 +1,5 @@
 import 'package:appwrite/appwrite.dart';
+import 'package:appwrite_authentication/forgot_password.dart';
 import 'package:appwrite_authentication/home.dart';
 import 'package:appwrite_authentication/main.dart';
 import 'package:appwrite_authentication/sign_up.dart';
@@ -21,6 +22,7 @@ class _SignInState extends State<SignIn> {
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             TextFormField(
@@ -43,6 +45,15 @@ class _SignInState extends State<SignIn> {
               autofillHints: const [AutofillHints.password],
               decoration: const InputDecoration(
                 hintText: 'Password',
+              ),
+            ),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: () {
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => const ForgotPassword()));
+                },
+                child: const Text('Forgot Password?'),
               ),
             ),
             const SizedBox(height: 16),

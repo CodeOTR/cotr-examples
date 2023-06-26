@@ -15,22 +15,28 @@ class _ForgotPasswordState extends State<ForgotPassword> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        children: [
-          TextField(
-            controller: emailController,
-            decoration: InputDecoration(labelText: 'Email'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Account(client).createRecovery(
-                email: emailController.text,
-                url: 'cotr-appwrite.firebaseapp.com',
-              );
-            },
-            child: const Text('Send Reset Password Link'),
-          ),
-        ],
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TextField(
+              controller: emailController,
+              decoration: const InputDecoration(labelText: 'Email'),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                Account(client).createRecovery(
+                  email: emailController.text,
+                  url: 'cotr-appwrite.firebaseapp.com',
+                );
+              },
+              child: const Text('Send Reset Password Link'),
+            ),
+          ],
+        ),
       ),
     );
   }
