@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:google_sign_in_platform_interface/google_sign_in_platform_interface.dart';
+import 'package:google_sign_in_web/google_sign_in_web.dart' as web;
 
 class SignIn extends StatefulWidget {
   const SignIn({Key? key}) : super(key: key);
@@ -12,12 +14,28 @@ class _SignInState extends State<SignIn> {
   bool loading = false;
   GoogleSignInAccount? user;
 
+  GoogleSignIn googleSignIn = GoogleSignIn(
+    clientId: const String.fromEnvironment('GOOGLE_CLIENT_ID'),
+    scopes: [
+      'https://www.googleapis.com/auth/user.birthday.read',
+    ],
+  );
+
+  @override
+  void initState() {
+    googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount? account) {
+      setState(() {
+        user = account;
+      });
+    });
+
+    googleSignIn.signInSilently();
+
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
-    GoogleSignIn googleSignIn = GoogleSignIn(
-      clientId: const String.fromEnvironment('GOOGLE_CLIENT_ID'),
-    );
-
     return Scaffold(
       body: Center(
         child: SizedBox(
@@ -27,45 +45,81 @@ class _SignInState extends State<SignIn> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               if (loading) const LinearProgressIndicator(),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () async {
-                  await googleSignIn.signInSilently();
-                  debugPrint('User: ' + googleSignIn.currentUser.toString());
+              if (user == null) ...[
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () async {
+                    setState(() {
+                      loading = true;
+                    });
+                    try {
+                      await googleSignIn.signIn();
 
-                  bool hasAuthorization = await googleSignIn.canAccessScopes(['https://www.googleapis.com/auth/user.birthday.read']);
+                      setState(() {
+                        loading = false;
+                      });
+                    } catch (e) {
+                      debugPrint('Error: $e');
+                      setState(() {
+                        loading = false;
+                      });
+                    }
+                  },
+                  child: const Text('Continue with Google: SignIn'),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () async {
+                    setState(() {
+                      loading = true;
+                    });
+                    try {
+                      await googleSignIn.signInSilently();
 
-                  debugPrint('hasAuthorization: ' + hasAuthorization.toString());
+                      setState(() {
+                        loading = false;
+                      });
+                    } catch (e) {
+                      debugPrint('Error: $e');
+                      setState(() {
+                        loading = false;
+                      });
+                    }
+                  },
+                  child: const Text('Continue with Google: SignInSilently'),
+                ),
+                const SizedBox(height: 16),
+                (GoogleSignInPlatform.instance as web.GoogleSignInPlugin).renderButton(configuration: web.GSIButtonConfiguration())
+              ] else ...[
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () async {
+                    setState(() {
+                      loading = true;
+                    });
+                    await googleSignIn.signOut();
 
-                  if (!hasAuthorization) {
-                    await googleSignIn.requestScopes(['https://www.googleapis.com/auth/user.birthday.read']);
+                    setState(() {
+                      loading = false;
+                    });
+                  },
+                  child: const Text('Sign Out'),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () async {
+                    setState(() {
+                      loading = true;
+                    });
+                    await googleSignIn.disconnect();
 
-                    bool hasAuthorization = await googleSignIn.canAccessScopes(['https://www.googleapis.com/auth/user.birthday.read']);
-
-                    debugPrint('hasAuthorization: ' + hasAuthorization.toString());
-                  }
-                },
-                child: const Text('Check User'),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () async {
-                  setState(() {
-                    loading = true;
-                  });
-                  await googleSignIn.signIn();
-
-                  if (googleSignIn.currentUser != null) {
-                    debugPrint('User: ' + googleSignIn.currentUser.toString());
                     setState(() {
                       user = googleSignIn.currentUser;
                       loading = false;
                     });
-                  }
-                },
-                child: const Text('Continue with Google'),
-              ),
-              if (user != null) ...[
+                  },
+                  child: const Text('Disconnect'),
+                ),
                 const SizedBox(height: 16),
                 DecoratedBox(
                   decoration: BoxDecoration(
@@ -92,9 +146,7 @@ class _SignInState extends State<SignIn> {
                                   ),
                                   Row(
                                     children: [
-                                      const SizedBox(
-                                        width: 48,
-                                      ),
+                                      const SizedBox(width: 48),
                                       Expanded(child: Text(headers.data.toString())),
                                     ],
                                   ),
@@ -102,37 +154,34 @@ class _SignInState extends State<SignIn> {
                               );
                             }),
                         FutureBuilder<GoogleSignInAuthentication>(
-                            future: user!.authentication,
-                            builder: (context, auth) {
-                              return Column(
-                                children: [
-                                  const ListTile(
-                                    leading: Icon(Icons.person),
-                                    title: Text('ID Token'),
-                                  ),
-                                  Row(
-                                    children: [
-                                      const SizedBox(
-                                        width: 48,
-                                      ),
-                                      Expanded(child: Text(auth.data?.idToken ?? '')),
-                                    ],
-                                  ),
-                                  const ListTile(
-                                    leading: Icon(Icons.lock),
-                                    title: Text('Access Token'),
-                                  ),
-                                  Row(
-                                    children: [
-                                      const SizedBox(
-                                        width: 48,
-                                      ),
-                                      Expanded(child: Text(auth.data?.accessToken ?? '')),
-                                    ],
-                                  ),
-                                ],
-                              );
-                            }),
+                          future: user!.authentication,
+                          builder: (context, auth) {
+                            return Column(
+                              children: [
+                                const ListTile(
+                                  leading: Icon(Icons.person),
+                                  title: Text('ID Token'),
+                                ),
+                                Row(
+                                  children: [
+                                    const SizedBox(width: 48),
+                                    Expanded(child: SelectableText(auth.data?.idToken ?? '')),
+                                  ],
+                                ),
+                                const ListTile(
+                                  leading: Icon(Icons.lock),
+                                  title: Text('Access Token'),
+                                ),
+                                Row(
+                                  children: [
+                                    const SizedBox(width: 48),
+                                    Expanded(child: SelectableText(auth.data?.accessToken ?? '')),
+                                  ],
+                                ),
+                              ],
+                            );
+                          },
+                        ),
                       ],
                     ),
                   ),
