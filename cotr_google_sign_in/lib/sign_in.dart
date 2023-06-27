@@ -1,3 +1,4 @@
+import 'package:cotr_google_sign_in/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -11,20 +12,16 @@ class SignIn extends StatefulWidget {
   State<SignIn> createState() => _SignInState();
 }
 
+GoogleSignIn googleSignIn = GoogleSignIn(clientId: const String.fromEnvironment('GOOGLE_CLIENT_ID'));
+
 class _SignInState extends State<SignIn> {
   bool loading = false;
   GoogleSignInAccount? user;
 
-  GoogleSignIn googleSignIn = GoogleSignIn(
-    clientId: const String.fromEnvironment('GOOGLE_CLIENT_ID'),
-    scopes: [
-      'https://www.googleapis.com/auth/user.birthday.read',
-    ],
-  );
-
   @override
   void initState() {
-    googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount? account) {
+    googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount? account) async {
+      debugPrint('User changed: $account');
       setState(() {
         user = account;
       });
@@ -35,8 +32,28 @@ class _SignInState extends State<SignIn> {
     super.initState();
   }
 
+  Future<bool> _canAccessBirthday() async {
+    String accessToken = sharedPreferences.getString('googleAccessToken') ?? '';
+
+    bool authorized = await googleSignIn.canAccessScopes(
+      ['https://www.googleapis.com/auth/user.birthday.read'],
+      accessToken: accessToken,
+    );
+
+    if (authorized) return true;
+
+    try {
+      bool authorized = await googleSignIn.requestScopes(['https://www.googleapis.com/auth/user.birthday.read']);
+      return authorized;
+    } catch (e) {
+      debugPrint('Error: $e');
+      return false;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    debugPrint('Access token: ${sharedPreferences.getString('googleAccessToken') ?? ''}');
     return Scaffold(
       body: Center(
         child: SizedBox(
@@ -116,7 +133,6 @@ class _SignInState extends State<SignIn> {
                       await googleSignIn.disconnect();
 
                       setState(() {
-                        user = googleSignIn.currentUser;
                         loading = false;
                       });
                     },
@@ -157,10 +173,17 @@ class _SignInState extends State<SignIn> {
                               leading: const Icon(Icons.cake),
                               title: const Text('Birthday'),
                               trailing: FutureBuilder<bool>(
-                                future: googleSignIn.canAccessScopes([
-                                  'https://www.googleapis.com/auth/user.birthday.read',
-                                ]),
+                                future: _canAccessBirthday(),
                                 builder: (context, snapshot) {
+                                  debugPrint('snapshot.connectionState: ${snapshot.connectionState}');
+                                  debugPrint('snapshot: ${snapshot.data}');
+                                  if (snapshot.connectionState == ConnectionState.waiting) {
+                                    return const SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                    );
+                                  }
+
                                   return (snapshot.data ?? false)
                                       ? const Icon(Icons.check)
                                       : const SizedBox(
@@ -178,6 +201,10 @@ class _SignInState extends State<SignIn> {
                                       await googleSignIn.requestScopes([
                                         'https://www.googleapis.com/auth/user.birthday.read',
                                       ]);
+                                      GoogleSignInAuthentication? auth = await googleSignIn.currentUser?.authentication;
+
+                                      debugPrint('Access token 1: ${auth?.accessToken ?? ''}');
+                                      await sharedPreferences.setString('googleAccessToken', auth?.accessToken ?? '');
                                       setState(() {});
                                     },
                                     child: const Text('Get Birthday')),
