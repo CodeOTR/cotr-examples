@@ -57,31 +57,32 @@ class _SignUpState extends State<SignUp> {
                           ),
                           const SizedBox(height: 16),
                           ElevatedButton(
-                            onPressed: () async {
-                              try {
-                                await Account(client).create(
-                                  userId: ID.unique(),
-                                  email: emailController.text,
-                                  password: passwordController.text,
-                                );
-
-                                Navigator.of(context).push(MaterialPageRoute(builder: (context) => const Home()));
-                              } on AppwriteException catch (e) {
-                                if (e.code == 409) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                        content: const Text('Email already exists'),
-                                        action: SnackBarAction(
-                                          label: 'Sign In',
-                                          onPressed: () {
-                                            context.go('/sign-in');
-                                          },
-                                        )),
-                                  );
+                            onPressed: () {
+                              Account(client)
+                                  .create(
+                                    userId: ID.unique(),
+                                    email: emailController.text,
+                                    password: passwordController.text,
+                                  )
+                                  .then((value) => context.go('/home'))
+                                  .onError((error, stackTrace) {
+                                if (error is AppwriteException) {
+                                  if (error.code == 409) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                          content: const Text('Email already exists'),
+                                          action: SnackBarAction(
+                                            label: 'Sign In',
+                                            onPressed: () {
+                                              context.go('/sign-in');
+                                            },
+                                          )),
+                                    );
+                                  }
+                                } else {
+                                  print(error);
                                 }
-                              } catch (e) {
-                                print(e);
-                              }
+                              });
                             },
                             child: const Text('Sign Up'),
                           ),

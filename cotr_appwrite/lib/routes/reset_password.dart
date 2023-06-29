@@ -1,3 +1,5 @@
+import 'package:appwrite/appwrite.dart';
+import 'package:appwrite_authentication/main.dart';
 import 'package:appwrite_authentication/widgets/basic_page.dart';
 import 'package:flutter/material.dart';
 
@@ -13,6 +15,7 @@ class _ResetPasswordState extends State<ResetPassword> {
   TextEditingController confirmPasswordController = TextEditingController();
 
   String get userId => Uri.base.queryParameters['userId'] ?? '';
+
   String get secret => Uri.base.queryParameters['secret'] ?? '';
 
   @override
@@ -31,10 +34,21 @@ class _ResetPasswordState extends State<ResetPassword> {
               controller: confirmPasswordController,
               decoration: const InputDecoration(labelText: 'Confirm Password'),
             ),
+            ListTile(
+              title: Text('User ID: $userId'),
+            ),
+            ListTile(
+              title: Text('Secret: $secret'),
+            ),
             const SizedBox(height: 16),
             ElevatedButton(
                 onPressed: () {
-
+                  Account(client).updateRecovery(
+                    userId: userId,
+                    secret: secret,
+                    password: passwordController.text,
+                    passwordAgain: confirmPasswordController.text,
+                  );
                 },
                 child: const Text('Reset Password')),
           ],

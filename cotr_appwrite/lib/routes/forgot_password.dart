@@ -29,14 +29,19 @@ class _ForgotPasswordState extends State<ForgotPassword> {
               ),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
                   try{
-                    Account(client).createRecovery(
+                   await Account(client).createRecovery(
                       email: emailController.text,
                       url: 'https://cotr-appwrite.firebaseapp.com/reset-password',
                     );
                   } catch (e) {
                     print(e);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(e.toString()),
+                      ),
+                    );
                   }
 
                 },
