@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 import 'package:http_parser/http_parser.dart';
@@ -41,14 +42,14 @@ class _HomeState extends State<Home> {
         children: [
           ElevatedButton(
             onPressed: () async {
-
               ImagePicker picker = ImagePicker();
 
-              XFile? pickedImage = await picker.pickImage(source: ImageSource.gallery, imageQuality: 50);
+              XFile? pickedImage = await picker.pickImage(source: ImageSource.gallery);
 
-              if(pickedImage == null) return;
+              if (pickedImage == null) return;
 
               image.value = pickedImage;
+              debugPrint('pickedImage: ' + pickedImage.path);
 
               // https://docs.butlerlabs.ai/reference/extract-document
               String butlerApiKey = const String.fromEnvironment('BUTLER_API_KEY');
@@ -62,13 +63,33 @@ class _HomeState extends State<Home> {
                 HttpHeaders.contentTypeHeader: 'multipart/form-data',
               });
 
-              Uint8List bytes = await pickedImage.readAsBytes();
+              if (defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS) {
+                request.files.add(
+                  await MultipartFile.fromPath(
+                    'file',
+                    pickedImage.path,
+                    contentType: MediaType('image', 'jpeg'),
+                  ),
+                );
+              } else {
+                Uint8List bytes = await pickedImage.readAsBytes();
 
-              request.files.add(await MultipartFile.fromPath(
-                'file',
-                pickedImage.path,
-                contentType: MediaType('image', 'jpeg')
-              ));
+                debugPrint('bytes: ' + bytes.length.toString());
+
+                MultipartFile file = MultipartFile(
+                  'file',
+                  ByteStream.fromBytes(bytes),
+                  bytes.lengthInBytes,
+                  filename: pickedImage.path.split('/').last,
+                  contentType: MediaType('image', 'jpeg'),
+                );
+
+                /*MultipartFile file = MultipartFile.fromBytes(
+                  'file',
+                  bytes,
+                );*/
+                request.files.add(file);
+              }
 
               StreamedResponse response = await request.send();
 
