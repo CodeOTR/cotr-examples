@@ -36,8 +36,9 @@ class _SignInState extends State<SignIn> {
                 autofillHints: const [AutofillHints.email],
                 textInputAction: TextInputAction.next,
                 validator: (value) {
-                  if (!RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+").hasMatch(emailController.text))
+                  if (!RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+").hasMatch(emailController.text)) {
                     return 'Enter valid email';
+                  }
 
                   return null;
                 },
