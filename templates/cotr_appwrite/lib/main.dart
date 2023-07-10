@@ -28,6 +28,25 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
+      builder: (context, child) {
+        return Stack(
+          children: [
+            child!,
+            if (const String.fromEnvironment('APPWRITE_PROJECT_ID') == '')
+              MaterialBanner(
+                backgroundColor: Colors.red,
+                content: const Text('APPWRITE_PROJECT_ID has not been set. Update'
+                    ' your config.json file and make sure you are running the app using dart-define '),
+                actions: [
+                  TextButton(
+                    onPressed: () {},
+                    child: const Text('Okay'),
+                  ),
+                ],
+              )
+          ],
+        );
+      },
       routerConfig: _router,
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
